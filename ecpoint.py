@@ -1,4 +1,5 @@
 import math
+from sha256.obtenerHash import generate_hash
 
 class ECPOINT:
     def __init__(self, x, y):
@@ -7,8 +8,7 @@ class ECPOINT:
     
     
     def __str__(self) -> str:
-    
-        return f'\n x: {hex(int(self.x))} \n y: {hex(int(self.y))})'
+        return f'\n x: {hex(int(self.x))} \n y: {hex(int(self.y))}'
 
     _A = 0
     _B = 7
@@ -38,7 +38,7 @@ class ECPOINT:
     
     
     @staticmethod
-    def multiply(k: int, a: 'ECPOINT' = None):
+    def multiply(k: int, a: 'ECPOINT' = None) -> 'ECPOINT':
         a = a if a != None else ECPOINT.G()
         punto_actual = a
         string_binario = ECPOINT.to_binary_string(k)
@@ -77,7 +77,7 @@ class ECPOINT:
     
     
     @staticmethod
-    def multiplicativo_inverso_N(n):
+    def multiplicativo_inverso_N(n) -> 'ECPOINT':
         return ECPOINT.multiplicativo_inverso(n, ECPOINT._N)
     
     
@@ -94,7 +94,20 @@ class ECPOINT:
     def multiplicativo_inverso(n, mod):
         mcd, x, y = ECPOINT.algoritmo_extendido_euclideano(n, mod)
         return x + mod
-            
-k = 0x1
-public_key = ECPOINT.multiply(k)
-print("public key: ", (public_key))
+    
+    
+    @staticmethod
+    def generate_hash(mensaje: bytearray):
+        return generate_hash(mensaje)
+    
+    
+    @staticmethod
+    def firmar_mensaje(mensaje: bytearray, privateKey: int):
+        k = 12345 #debe ser aleatorio
+        z = ECPOINT.generate_hash(mensaje)
+        R = ECPOINT.multiply(k)
+        if R.x == 0: return ECPOINT.firmar_mensaje(mensaje, privateKey)
+        s = ECPOINT.multiplicativo_inverso_N(k) * (z + R.x * privateKey) % ECPOINT._N
+        return ECPOINT(R.x, s)
+    
+    #falta funcion de verificacion
